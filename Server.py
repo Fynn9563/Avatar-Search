@@ -15,7 +15,8 @@ def create_table():
     cursor.execute('''CREATE TABLE Avatars
                       (id TEXT PRIMARY KEY,
                        name TEXT,
-                       author TEXT)''')
+                       author TEXT,
+                       image_url TEXT)''')
     conn.commit()
     conn.close()
 
@@ -72,7 +73,11 @@ def upload_file():
         file = request.files['file']
         if file:
             avatar_data = json.load(file)
-            import_avatars_from_json(avatar_data)
+            if isinstance(avatar_data, list):
+                for avatar in avatar_data:
+                    import_avatars_from_json(avatar)
+            else:
+                import_avatars_from_json(avatar_data)
             return redirect(url_for('home'))
     return render_template('upload.html')
 
