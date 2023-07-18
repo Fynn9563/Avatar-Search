@@ -36,34 +36,34 @@ def search_avatars(search_term, limit=5000):
     return results
     
 # Function to import avatars from a JSON file
-def import_avatars_from_json(json_file):
-    with open(json_file, 'r') as file:
-        avatars_data = json.load(file)
-
+def import_avatars_from_json(avatar_data):
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
 
-    for avatar in avatars_data:
-        avatar_id = avatar['id']
-        avatar_name = avatar['name']
-        avatar_author = avatar['author']
+    if isinstance(avatar_data, dict):
+        avatar_id = avatar_data.get('id')
+        avatar_name = avatar_data.get('name')
+        avatar_author = avatar_data.get('authorName')
+        avatar_image_url = avatar_data.get('imageUrl')
 
-        # Check if avatar with the same ID already exists
-        query = "SELECT id FROM Avatars WHERE id = ?"
-        cursor.execute(query, (avatar_id,))
-        existing_avatar = cursor.fetchone()
+        if avatar_id:
+            # Check if avatar with the same ID already exists
+            query = "SELECT id FROM Avatars WHERE id = ?"
+            cursor.execute(query, (avatar_id,))
+            existing_avatar = cursor.fetchone()
 
-        if existing_avatar:
-            # Overwrite the existing avatar record
-            query = "UPDATE Avatars SET name = ?, author = ? WHERE id = ?"
-            cursor.execute(query, (avatar_name, avatar_author, avatar_id))
-        else:
-            # Insert the new avatar record
-            query = "INSERT INTO Avatars (id, name, author) VALUES (?, ?, ?)"
-            cursor.execute(query, (avatar_id, avatar_name, avatar_author))
+            if existing_avatar:
+                # Overwrite the existing avatar record
+                query = "UPDATE Avatars SET name = ?, author = ?, image_url = ? WHERE id = ?"
+                cursor.execute(query, (avatar_name, avatar_author, avatar_image_url, avatar_id))
+            else:
+                # Insert the new avatar record
+                query = "INSERT INTO Avatars (id, name, author, image_url) VALUES (?, ?, ?, ?)"
+                cursor.execute(query, (avatar_id, avatar_name, avatar_author, avatar_image_url))
 
     conn.commit()
     conn.close()
+
 
 # Route for file upload
 @app.route('/upload', methods=['GET', 'POST'])
@@ -71,9 +71,8 @@ def upload_file():
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            with tempfile.NamedTemporaryFile(delete=False) as temp:
-                file.save(temp.name)
-                import_avatars_from_json(temp.name)
+            avatar_data = json.load(file)
+            import_avatars_from_json(avatar_data)
             return redirect(url_for('home'))
     return render_template('upload.html')
 

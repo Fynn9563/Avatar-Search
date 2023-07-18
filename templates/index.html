@@ -78,6 +78,12 @@
             text-decoration: none;
         }
 
+        .avatar-image {
+            max-width: 100px;
+            height: auto;
+            margin-top: 10px;
+        }
+
         /* Dark mode styles */
         .dark-mode {
             background-color: #111111;
@@ -117,6 +123,8 @@
                                 <li class="list-group-item">
                                     <strong>ID:</strong> <a href="vrcx://avatar/{{ row[0] }}" class="avatar-link">{{ row[0] }}</a><br>
                                     <strong>Name:</strong> {{ row[1] }}
+                                    <br>
+                                    <img src="{{ row[3] }}" alt="Avatar Image" class="avatar-image">
                                 </li>
                             {% endfor %}
                         </ul>
